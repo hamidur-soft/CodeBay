@@ -1,0 +1,142 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn import linear_model
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+
+
+#script for loading csv dataset
+data = pd.read_csv("data.csv")
+print('Inputted data for regression analysis')
+print(data)
+#print(df.to_string())
+#print(df.head(10))
+
+print('Inputted data shape')
+print(data.shape)
+
+
+# for scatter diagram to find out suitable model
+plt.rcParams['xtick.bottom'] = plt.rcParams['xtick.labelbottom'] = False
+plt.rcParams['xtick.top'] = plt.rcParams['xtick.labeltop'] = True
+data.plot(kind='scatter', x="TWT_Sec", y='Depth_Meter',
+          title='Scatter diagram for find out suitable model', label="Observed data")
+plt.gca().invert_yaxis()
+plt.xlabel('Two Way Travel Time(Seismic Wave) in Sec')
+plt.ylabel('Depth from Surface in Meter')
+plt.legend
+plt.show()
+
+
+# for data set calculating correlation coefficient
+print('Calculation of correlation coefficient')
+print(data.corr())
+print('\n')
+
+
+# for data reshaping
+x = data['TWT_Sec'].values
+y = data['Depth_Meter'].values
+x = x.reshape(-1, 1)
+
+
+# for data transforming
+poly = PolynomialFeatures(degree=2)
+x_poly = poly.fit_transform(x)
+print('Data transforming for Polynomial Fitting')
+print(x_poly)
+
+
+# for polynomial fitting and modelling
+poly.fit(x_poly,y)
+linreg = LinearRegression()
+model = linreg.fit(x_poly,y)
+y_pred = model.predict(x_poly)
+
+
+# for visualization of regression line with observed data
+data.plot(kind='scatter', x="TWT_Sec", y='Depth_Meter', color='blue',
+          title='2nd Degree Polynomial regression line fitting', label="Observed values")
+plt.plot(x, y_pred, color="black", label="polynomial regression line")
+plt.xlabel('Two Way Travel Time(Seismic Wave) in Sec')
+plt.ylabel('Depth from Surface in Meter')
+plt.gca().invert_yaxis()
+plt.legend()
+plt.show()
+
+
+# for generating polynomial model coefficient
+print('Model coefficient')
+print(model.coef_)
+
+
+# to know the value of intercept along y-axis
+print('Value of intercept along y-axis')
+print(model.intercept_)
+
+
+# for evaluating the model
+print('Evaluation of the model')
+print(model.score(x_poly, y))
+
+
+# New data set for predicting depth values based on created above model
+data_new = pd.read_csv("data_new.csv")  # importing new dataset for prediction
+print('Data set for predicting depth values based on created above model')
+print(data_new)
+
+
+# new data reshaping for usable formatting in model
+a = data_new['TWT_new'].values
+a = a.reshape(-1, 1)
+
+
+# for transforming and fitting new data in order to use in model
+poly = PolynomialFeatures(degree=2)
+a_poly = poly.fit_transform(a)
+
+
+# for prediction of depth based on model corresponding of travel time
+b_pred = model.predict(a_poly)
+print('\n')
+
+
+
+# prediction part of model visualization
+plt.scatter(a, b_pred, color="green", label="Predicted depth values")
+plt.plot(a, b_pred, color="red", label="Predicted line of polynomial regression")
+plt.xlabel('Two Way Travel Time(Seismic Wave) in Sec')
+plt.ylabel('Depth from Surface in Meter')
+plt.title("Graph for new dataset and predicted depth")
+plt.gca().invert_yaxis()
+plt.legend()
+plt.show()
+
+
+# for final model visualization
+data.plot(kind='scatter', x="TWT_Sec", y='Depth_Meter', color='blue',
+          title='2nd Degree Polynomial Model for Depth Prediction', label="Observed values")
+plt.plot(x, y_pred, color="black", label="polynomial regression line")
+plt.scatter(a, b_pred, color="green", label="Predicted depth values")
+plt.plot(a, b_pred, color="red", label="Predicted line of polynomial regression")
+plt.xlabel('Two Way Travel Time(Seismic Wave) in Sec')
+plt.ylabel('Depth from Surface in Meter')
+plt.gca().invert_yaxis()
+plt.legend()
+plt.show()
+
+
+# for exporting Model result
+b_pred = b_pred.reshape(-1,1)
+print("Predicted depth based on analysis")
+print(b_pred)
+p = pd.DataFrame(a)
+q = pd.DataFrame(b_pred)
+df = pd.concat([p, q], axis=1, keys=["TWT_new", "Depth_predict"])
+
+print('\n')
+print(df)
+# For exporting predicted values in CSV format in future use
+df.to_csv("D:\\Python_Training_pycharm\\Forcasting Modelling_for_Seismic_Wave_Propagration\\"
+          "Predicted final result", index=False)
